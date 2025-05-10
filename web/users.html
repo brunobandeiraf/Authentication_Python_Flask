@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Usuários</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 1.5rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .logout {
+            padding: 0.5rem 1rem;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logout:hover {
+            background-color: #c82333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .message {
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Lista de Usuários</h1>
+            <a href="login.html" class="logout">Sair</a>
+        </div>
+        <div id="message"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome de Usuário</th>
+                    <th>Senha</th>
+                </tr>
+            </thead>
+            <tbody id="usersList">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5000';
+
+        async function loadUsers() {
+            const messageDiv = document.getElementById('message');
+            const usersList = document.getElementById('usersList');
+
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const users = await response.json();
+                    if (users.length === 0) {
+                        usersList.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum usuário cadastrado</td></tr>';
+                    } else {
+                        usersList.innerHTML = users.map(user => `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${user.username}</td>
+                                <td>${user.password}</td>
+                            </tr>
+                        `).join('');
+                    }
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = 'Erro ao carregar usuários';
+                    // Se não estiver autenticado, redireciona para a página de login
+                    if (response.status === 401) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Erro ao conectar com o servidor. Verifique se o servidor está rodando.';
+            }
+        }
+
+        // Carrega a lista de usuários quando a página é carregada
+        loadUsers();
+    </script>
+</body>
+</html> 
